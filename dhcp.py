@@ -9,8 +9,12 @@ heute = datetime.now()
 
 netzIp = "192.168.1."
 IPListe = []
-for items in collection.find():
-    IPListe.append(items)
+for item in collection.find():
+    new_item = {
+        "ip": item["ip"],
+        "mac": item["mac"],
+        "lease_end": item["lease_end"]  # bleibt datetime
+    }
 ende = False
 
 #Checkt MAC nach Gültigkeit
@@ -90,7 +94,7 @@ while ende == False:
                     ip_to_check = netzIp + str(hostAdresse)
                     is_available = True
                     for entry in IPListe:
-                        if entry[0] == ip_to_check:
+                        if entry[1] == ip_to_check:
                             is_available = False
                             break
                     
@@ -130,7 +134,7 @@ while ende == False:
         if result.deleted_count > 0:
             print(f"\033[32mEintrag mit IP {ip_to_delete} wurde gelöscht.\033[0m")
             for i in IPListe:
-                if i[0] == ip_to_delete:
+                if i["ip"] == ip_to_delete:
                     IPListe.remove(i)
                     break
         else:
