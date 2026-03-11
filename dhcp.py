@@ -1,5 +1,11 @@
-from datetime import date, timedelta
-heute = date.today()
+from datetime import datetime, timedelta
+from pymongo import MongoClient
+
+client = MongoClient("mongodb://localhost:27017/")
+db = client["dhcp_simulation"]      # Datenbankname
+collection = db["leases"]           # Collectionname
+
+heute = datetime.now()
 
 netzIp = "192.168.1."
 IPListe = []
@@ -45,11 +51,13 @@ def MAC_Überprüfer(clientinput):
 leasetime = heute + timedelta(days=7)
 hostAdresse = 1
 while ende == False:
+    hostAdresse = 1
     #IPliste leeren wenn lease time vorbei
-    heute = date.today()
+    heute = datetime.now()
+    collection.delete_many({"lease_end": {"$lt": heute}})
     for i in IPListe:
         if heute > i[2]:
-            IPListe.pop[i]
+            IPListe.remove(i)
 
     def MacDuplikat(clientinput):
         for ip, mac, time in IPListe:
@@ -62,6 +70,7 @@ while ende == False:
     print("1 Neuen Eintrag erstellen")
     print("2 Programm beenden")
     print("3 Gib das ganze Netzwerk aus")
+    print("4 Eintrag löschen")
     auswahl = input("Geben Sie eine Auswahl ein: \n")
 
     #Neue IP registrieren
@@ -84,8 +93,15 @@ while ende == False:
                             break
                     
                     if is_available:
-                        clientenEintrag = [ip_to_check, clientinput, heute + timedelta(days=7)]
+                        lease_end = heute + timedelta(days=7)
+                        clientenEintrag = [ip_to_check, clientinput, lease_end]
                         IPListe.append(clientenEintrag)
+                        lease = {
+                            "ip": ip_to_check,
+                            "mac": clientinput,
+                            "lease_end": lease_end
+                        }
+                        collection.insert_one(lease)
                         print(f"\033[32mIhre Neue IP ist: {ip_to_check}\033[0m")
                         break
                     hostAdresse += 1
@@ -103,9 +119,20 @@ while ende == False:
 
     #Ganze Netzwerkliste ausgeben
     elif auswahl == "3":
-        for item in IPListe:
-            print(f"\033[32mIP: {item[0]} MAC: {item[1]}" f" Lease Time: {item[2]}\033[0m")
+        for item in collection.find():
+            print(f"\033[32mIP: {item['ip']} MAC: {item['mac']}" f" Lease Time: {item['lease_end']}\033[0m")
             print()
+    elif auswahl == "4":
+        ip_to_delete = input("Geben Sie die IP-Adresse ein, die Sie löschen möchten: \n")
+        result = collection.delete_one({"ip": ip_to_delete})
+        if result.deleted_count > 0:
+            print(f"\033[32mEintrag mit IP {ip_to_delete} wurde gelöscht.\033[0m")
+            for i in IPListe:
+                if i[0] == ip_to_delete:
+                    IPListe.remove(i)
+                    break
+        else:
+            print(f"\033[31mKeine Einträge mit der IP {ip_to_delete} gefunden.\033[0m")
     else:   
         print()
         print("\033[31mBitte geben Sie eine gültige Eingabe ein!\033[0m")
