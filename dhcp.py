@@ -9,6 +9,8 @@ heute = datetime.now()
 
 netzIp = "192.168.1."
 IPListe = []
+for items in collection.find():
+    IPListe.append(items)
 ende = False
 
 #Checkt MAC nach Gültigkeit
