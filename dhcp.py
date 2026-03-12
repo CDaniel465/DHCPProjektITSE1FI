@@ -10,11 +10,7 @@ heute = datetime.now()
 netzIp = "192.168.1."
 IPListe = []
 for item in collection.find():
-    new_item = {
-        "ip": item["ip"],
-        "mac": item["mac"],
-        "lease_end": item["lease_end"]  # bleibt datetime
-    }
+    IPListe.append([item["ip"], item["mac"], item["lease_end"]])
 ende = False
 
 #Checkt MAC nach Gültigkeit
@@ -81,7 +77,7 @@ while ende == False:
 
     #Neue IP registrieren
     if auswahl == "1":
-        if len(IPListe) == 254:
+        if len(IPListe) >= 254:
             print("\033[31mKeine freien IP-Adressen mehr verfügbar.\033[0m")
         else:
 
@@ -94,7 +90,7 @@ while ende == False:
                     ip_to_check = netzIp + str(hostAdresse)
                     is_available = True
                     for entry in IPListe:
-                        if entry[1] == ip_to_check:
+                        if entry[0] == ip_to_check:
                             is_available = False
                             break
                     
@@ -134,7 +130,7 @@ while ende == False:
         if result.deleted_count > 0:
             print(f"\033[32mEintrag mit IP {ip_to_delete} wurde gelöscht.\033[0m")
             for i in IPListe:
-                if i["ip"] == ip_to_delete:
+                if i[0] == ip_to_delete:
                     IPListe.remove(i)
                     break
         else:
