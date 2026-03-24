@@ -81,7 +81,7 @@ while ende == False:
             print("\033[31mKeine freien IP-Adressen mehr verfügbar.\033[0m")
         else:
 
-            clientinput = input("Geben Sie Ihre Mac an: \n")
+            clientinput = input("Geben Sie Ihre Mac an: \n").upper()
 
             if (MAC_Überprüfer(clientinput)== True):
                 if MacDuplikat(clientinput):
